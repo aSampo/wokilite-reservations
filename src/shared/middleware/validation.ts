@@ -18,13 +18,8 @@ export function validateBody(schema: z.ZodTypeAny) {
     } catch (error) {
       if (error instanceof ZodError) {
         res.status(400).json({
-          error: "validation_error",
-          message: formatZodError(error),
-          details: error.issues.map((err) => ({
-            field: err.path.join("."),
-            message: err.message,
-            code: err.code,
-          })),
+          error: "invalid_request",
+          detail: formatZodError(error),
         });
       } else {
         next(error);
@@ -42,13 +37,8 @@ export function validateQuery(schema: z.ZodTypeAny) {
     } catch (error) {
       if (error instanceof ZodError) {
         res.status(400).json({
-          error: "validation_error",
-          message: formatZodError(error),
-          details: error.issues.map((err) => ({
-            field: err.path.join("."),
-            message: err.message,
-            code: err.code,
-          })),
+          error: "invalid_request",
+          detail: formatZodError(error),
         });
       } else {
         next(error);

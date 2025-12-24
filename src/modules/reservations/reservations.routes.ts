@@ -10,12 +10,7 @@ import {
   CreateReservationBody,
   ReservationsDayQuery,
 } from "./reservation.schemas";
-import {
-  createReservation,
-  cancelReservation,
-  getReservation,
-  getReservationsForDay,
-} from "./reservation.service";
+import { reservationService } from "./reservation.service";
 import { logger } from "../../shared/utils/logger";
 
 const router = Router();
@@ -24,7 +19,7 @@ router.post(
   "/",
   requireIdempotencyKey,
   validateBody(createReservationSchema),
-  (req, res) => {
+  async (req, res) => {
     const body = req.body as CreateReservationBody;
     const idempotencyKey = (req as any).idempotencyKey as string;
     const requestId = (req as any).requestId;
@@ -38,7 +33,10 @@ router.post(
       idempotencyKey,
     });
 
-    const result = createReservation(body, idempotencyKey);
+    const result = await reservationService.createReservation(
+      body,
+      idempotencyKey
+    );
 
     if (!result.success) {
       let statusCode = 400;
@@ -64,7 +62,7 @@ router.post(
       end: reservation.endDateTimeISO,
       status: reservation.status,
       customer: reservation.customer,
-      notes: reservation.notes,
+      ...(reservation.notes && { notes: reservation.notes }),
       createdAt: reservation.createdAt,
       updatedAt: reservation.updatedAt,
     });
@@ -81,7 +79,7 @@ router.delete("/:id", (req, res) => {
     reservationId: id,
   });
 
-  const reservation = getReservation(id);
+  const reservation = reservationService.getReservation(id);
   if (!reservation) {
     res.status(404).json({
       error: "not_found",
@@ -90,7 +88,7 @@ router.delete("/:id", (req, res) => {
     return;
   }
 
-  const deleted = cancelReservation(id);
+  const deleted = reservationService.cancelReservation(id);
   if (deleted) {
     res.status(204).send();
   } else {
@@ -113,7 +111,7 @@ router.get("/day", validateQuery(reservationsDayQuerySchema), (req, res) => {
     sectorId: query.sectorId,
   });
 
-  const reservations = getReservationsForDay(
+  const reservations = reservationService.getReservationsForDay(
     query.restaurantId,
     query.date,
     query.sectorId
@@ -130,7 +128,7 @@ router.get("/day", validateQuery(reservationsDayQuerySchema), (req, res) => {
       end: r.endDateTimeISO,
       status: r.status,
       customer: r.customer,
-      notes: r.notes,
+      ...(r.notes && { notes: r.notes }),
       createdAt: r.createdAt,
       updatedAt: r.updatedAt,
     })),

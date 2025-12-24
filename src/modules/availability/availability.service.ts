@@ -7,8 +7,11 @@ import {
   getLocalTimeString,
   isTimeInRange,
 } from "../../shared/utils/timezone";
-import { restaurantRepository, sectorRepository } from "../../shared/repositories";
-import { findAvailableTable } from "./table-assignment.service";
+import {
+  restaurantRepository,
+  sectorRepository,
+} from "../../shared/repositories";
+import { findAvailableTable } from "../../shared/services/table-assignment.service";
 
 export interface TimeSlot {
   start: string;

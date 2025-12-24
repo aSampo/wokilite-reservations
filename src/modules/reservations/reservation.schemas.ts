@@ -10,7 +10,8 @@ export const createReservationSchema = z.object({
     .max(50, "partySize cannot exceed 50"),
   startDateTimeISO: z
     .string()
-    .datetime(
+    .regex(
+      /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}[+-]\d{2}:\d{2}$/,
       "startDateTimeISO must be ISO 8601 with timezone (e.g., 2025-09-08T20:00:00-03:00)"
     ),
   customer: z.object({

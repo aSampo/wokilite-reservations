@@ -19,7 +19,7 @@ export function requireIdempotencyKey(
   if (!key) {
     res.status(400).json({
       error: "missing_idempotency_key",
-      message: "Idempotency-Key header is required",
+      detail: "Idempotency-Key header is required",
     });
     return;
   }

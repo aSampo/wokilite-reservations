@@ -1,5 +1,8 @@
 import { Table } from "../types/index.js";
-import { tableRepository, reservationRepository } from "../repositories/index.js";
+import {
+  tableRepository,
+  reservationRepository,
+} from "../repositories/index.js";
 import { addMinutes, parseISO } from "date-fns";
 import { config } from "../../config/index.js";
 import { formatInTimezone } from "../utils/timezone.js";

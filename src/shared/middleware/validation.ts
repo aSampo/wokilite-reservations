@@ -1,16 +1,16 @@
 import { Request, Response, NextFunction } from "express";
-import { z, ZodSchema, ZodError, ZodIssue } from "zod";
+import { z, ZodError } from "zod";
 
 function formatZodError(error: ZodError): string {
   return error.issues
-    .map((err: ZodIssue) => {
+    .map((err) => {
       const field = err.path.join(".");
       return `${field}: ${err.message}`;
     })
     .join(", ");
 }
 
-export function validateBody(schema: ZodSchema) {
+export function validateBody(schema: z.ZodTypeAny) {
   return (req: Request, res: Response, next: NextFunction) => {
     try {
       req.body = schema.parse(req.body);
@@ -20,7 +20,7 @@ export function validateBody(schema: ZodSchema) {
         res.status(400).json({
           error: "validation_error",
           message: formatZodError(error),
-          details: error.issues.map((err: ZodIssue) => ({
+          details: error.issues.map((err) => ({
             field: err.path.join("."),
             message: err.message,
             code: err.code,
@@ -33,7 +33,7 @@ export function validateBody(schema: ZodSchema) {
   };
 }
 
-export function validateQuery(schema: ZodSchema) {
+export function validateQuery(schema: z.ZodTypeAny) {
   return (req: Request, res: Response, next: NextFunction) => {
     try {
       const parsed = schema.parse(req.query);
@@ -44,7 +44,7 @@ export function validateQuery(schema: ZodSchema) {
         res.status(400).json({
           error: "validation_error",
           message: formatZodError(error),
-          details: error.issues.map((err: ZodIssue) => ({
+          details: error.issues.map((err) => ({
             field: err.path.join("."),
             message: err.message,
             code: err.code,

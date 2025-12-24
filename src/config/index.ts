@@ -4,4 +4,4 @@ export const config = {
   logLevel: process.env.LOG_LEVEL || "info",
   slotMinutes: 15,
   defaultDurationMinutes: 90,
-};
+} as const;

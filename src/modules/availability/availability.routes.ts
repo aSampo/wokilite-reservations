@@ -1,11 +1,11 @@
 import { Router } from "express";
-import { validateQuery } from "../../shared/middleware/validation";
+import { validateQuery } from "../../shared/middleware/validation.js";
 import {
   availabilityQuerySchema,
   AvailabilityQuery,
-} from "./availability.schemas";
-import { getAvailability } from "./availability.service";
-import { logger } from "../../shared/utils/logger";
+} from "./availability.schemas.js";
+import { getAvailability } from "./availability.service.js";
+import { logger } from "../../shared/utils/logger.js";
 
 const router = Router();
 

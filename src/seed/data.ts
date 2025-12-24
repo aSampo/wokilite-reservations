@@ -1,4 +1,4 @@
-import { Restaurant, Sector, Table } from "../shared/types";
+import { Restaurant, Sector, Table } from "../shared/types/index.js";
 
 export const seedRestaurant: Restaurant = {
   id: "R1",

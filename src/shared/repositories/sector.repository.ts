@@ -1,4 +1,4 @@
-import { Sector } from "../types";
+import { Sector } from "../types/index.js";
 
 class SectorRepository {
   private sectors: Map<string, Sector> = new Map();

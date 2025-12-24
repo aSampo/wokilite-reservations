@@ -1,8 +1,8 @@
-import { Table } from "../types";
-import { tableRepository, reservationRepository } from "../repositories";
+import { Table } from "../types/index.js";
+import { tableRepository, reservationRepository } from "../repositories/index.js";
 import { addMinutes, parseISO } from "date-fns";
-import { config } from "../../config";
-import { formatInTimezone } from "../utils/timezone";
+import { config } from "../../config/index.js";
+import { formatInTimezone } from "../utils/timezone.js";
 
 export interface TableAssignmentResult {
   tableIds: string[];

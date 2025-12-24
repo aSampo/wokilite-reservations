@@ -2,9 +2,9 @@ import {
   restaurantRepository,
   sectorRepository,
   tableRepository,
-} from "../shared/repositories";
-import { seedRestaurant, seedSectors, seedTables } from "./data";
-import { logger } from "../shared/utils/logger";
+} from "../shared/repositories/index.js";
+import { seedRestaurant, seedSectors, seedTables } from "./data.js";
+import { logger } from "../shared/utils/logger.js";
 
 export function loadSeedData(): void {
   restaurantRepository.create(seedRestaurant);

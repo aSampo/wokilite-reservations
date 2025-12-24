@@ -1,17 +1,17 @@
 import { addMinutes, parseISO } from "date-fns";
-import { Restaurant } from "../../shared/types";
-import { config } from "../../config";
+import { Restaurant } from "../../shared/types/index.js";
+import { config } from "../../config/index.js";
 import {
   createDateInTimezone,
   formatInTimezone,
   getLocalTimeString,
   isTimeInRange,
-} from "../../shared/utils/timezone";
+} from "../../shared/utils/timezone.js";
 import {
   restaurantRepository,
   sectorRepository,
-} from "../../shared/repositories";
-import { findAvailableTable } from "../../shared/services/table-assignment.service";
+} from "../../shared/repositories/index.js";
+import { findAvailableTable } from "../../shared/services/table-assignment.service.js";
 
 export interface TimeSlot {
   start: string;

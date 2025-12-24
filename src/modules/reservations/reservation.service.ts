@@ -1,17 +1,17 @@
 import { Mutex } from "async-mutex";
-import { Reservation, Customer } from "../../shared/types";
+import { Reservation, Customer } from "../../shared/types/index.js";
 import {
   restaurantRepository,
   sectorRepository,
   reservationRepository,
-} from "../../shared/repositories";
-import { generateId } from "../../shared/utils/id";
-import { createTimestamps } from "../../shared/utils/date";
-import { findAvailableTable } from "../../shared/services/table-assignment.service";
-import { isWithinServiceWindow } from "../availability/availability.service";
+} from "../../shared/repositories/index.js";
+import { generateId } from "../../shared/utils/id.js";
+import { createTimestamps } from "../../shared/utils/date.js";
+import { findAvailableTable } from "../../shared/services/table-assignment.service.js";
+import { isWithinServiceWindow } from "../availability/availability.service.js";
 import { addMinutes, parseISO } from "date-fns";
-import { config } from "../../config";
-import { formatInTimezone } from "../../shared/utils/timezone";
+import { config } from "../../config/index.js";
+import { formatInTimezone } from "../../shared/utils/timezone.js";
 
 export interface CreateReservationInput {
   restaurantId: string;

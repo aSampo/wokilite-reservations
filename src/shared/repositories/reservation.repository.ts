@@ -1,4 +1,4 @@
-import { Reservation } from "../types";
+import { Reservation } from "../types/index.js";
 import { parseISO, startOfDay, endOfDay } from "date-fns";
 
 class ReservationRepository {

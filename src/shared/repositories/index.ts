@@ -1,5 +1,5 @@
-export { restaurantRepository } from "./restaurant.repository";
-export { sectorRepository } from "./sector.repository";
-export { tableRepository } from "./table.repository";
-export { reservationRepository } from "./reservation.repository";
+export { restaurantRepository } from "./restaurant.repository.js";
+export { sectorRepository } from "./sector.repository.js";
+export { tableRepository } from "./table.repository.js";
+export { reservationRepository } from "./reservation.repository.js";
 

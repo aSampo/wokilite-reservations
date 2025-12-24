@@ -2,16 +2,16 @@ import { Router } from "express";
 import {
   validateBody,
   validateQuery,
-} from "../../shared/middleware/validation";
-import { requireIdempotencyKey } from "../../shared/middleware/idempotency";
+} from "../../shared/middleware/validation.js";
+import { requireIdempotencyKey } from "../../shared/middleware/idempotency.js";
 import {
   createReservationSchema,
   reservationsDayQuerySchema,
   CreateReservationBody,
   ReservationsDayQuery,
-} from "./reservation.schemas";
-import { reservationService } from "./reservation.service";
-import { logger } from "../../shared/utils/logger";
+} from "./reservation.schemas.js";
+import { reservationService } from "./reservation.service.js";
+import { logger } from "../../shared/utils/logger.js";
 
 const router = Router();
 

@@ -1,11 +1,11 @@
 import express from "express";
-import { config } from "./config";
-import { logger } from "./shared/utils/logger";
-import { loadSeedData } from "./seed";
-import { now } from "./shared/utils/date";
-import { requestIdMiddleware } from "./shared/middleware/request-id";
-import availabilityRoutes from "./modules/availability/availability.routes";
-import reservationsRoutes from "./modules/reservations/reservations.routes";
+import { config } from "./config/index.js";
+import { logger } from "./shared/utils/logger.js";
+import { loadSeedData } from "./seed/index.js";
+import { now } from "./shared/utils/date.js";
+import { requestIdMiddleware } from "./shared/middleware/request-id.js";
+import availabilityRoutes from "./modules/availability/availability.routes.js";
+import reservationsRoutes from "./modules/reservations/reservations.routes.js";
 
 const app = express();
 

@@ -1,4 +1,4 @@
-import { Restaurant } from "../types";
+import { Restaurant } from "../types/index.js";
 
 class RestaurantRepository {
   private restaurants: Map<string, Restaurant> = new Map();

@@ -1,4 +1,4 @@
-import { Table } from "../types";
+import { Table } from "../types/index.js";
 
 class TableRepository {
   private tables: Map<string, Table> = new Map();

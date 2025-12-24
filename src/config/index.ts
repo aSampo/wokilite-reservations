@@ -4,4 +4,8 @@ export const config = {
   logLevel: process.env.LOG_LEVEL || "info",
   slotMinutes: 15,
   defaultDurationMinutes: 90,
+  cors: {
+    origin: process.env.CORS_ORIGIN || "*",
+    credentials: process.env.CORS_CREDENTIALS === "true",
+  },
 } as const;

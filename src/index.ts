@@ -1,4 +1,5 @@
 import express from "express";
+import cors from "cors";
 import { config } from "./config/index.js";
 import { logger } from "./shared/utils/logger.js";
 import { loadSeedData } from "./seed/index.js";
@@ -9,6 +10,16 @@ import reservationsRoutes from "./modules/reservations/reservations.routes.js";
 
 const app = express();
 
+app.use(
+  cors({
+    origin: config.cors.origin,
+    credentials: config.cors.credentials,
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Idempotency-Key"],
+    exposedHeaders: ["X-Request-Id"],
+    maxAge: 86400,
+  })
+);
 app.use(requestIdMiddleware);
 app.use(express.json());
 

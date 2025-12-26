@@ -39,10 +39,6 @@ export function generateSlotsForDate(
 ): Date[] {
   const slots: Date[] = [];
 
-  // TODO: Consider filtering slots where reservation end time would exceed shift end
-  // Example: Shift ends at 16:00, slot at 15:45 would end at 17:15 (90min duration)
-  // Current behavior: Allows booking at 15:45 even if it exceeds shift end time
-
   if (!restaurant.shifts || restaurant.shifts.length === 0) {
     const dayStart = createDateInTimezone(date, "00:00", restaurant.timezone);
     const dayEnd = createDateInTimezone(date, "23:59", restaurant.timezone);

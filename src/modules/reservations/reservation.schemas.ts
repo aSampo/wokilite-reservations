@@ -31,6 +31,10 @@ export const reservationsDayQuerySchema = z.object({
       "date must be in YYYY-MM-DD format (e.g., 2025-09-08)"
     ),
   sectorId: z.string().optional(),
+  includeCancelled: z
+    .string()
+    .optional()
+    .transform((val) => val === "true"),
 });
 
 export type CreateReservationBody = z.infer<typeof createReservationSchema>;

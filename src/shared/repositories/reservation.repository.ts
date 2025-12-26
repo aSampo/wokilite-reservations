@@ -1,4 +1,4 @@
-import { Reservation } from "../types/index.js";
+import { Reservation, ReservationStatus } from "../types/index.js";
 import { parseISO, startOfDay, endOfDay } from "date-fns";
 
 class ReservationRepository {
@@ -39,26 +39,42 @@ class ReservationRepository {
     );
   }
 
-  findByRestaurantAndDate(restaurantId: string, date: string): Reservation[] {
+  findByRestaurantAndDate(
+    restaurantId: string,
+    date: string,
+    includeCancelled = false
+  ): Reservation[] {
     const dayStart = startOfDay(parseISO(date));
     const dayEnd = endOfDay(parseISO(date));
 
     return Array.from(this.reservations.values()).filter((reservation) => {
       if (reservation.restaurantId !== restaurantId) return false;
-      if (reservation.status === "CANCELLED") return false;
+      if (
+        !includeCancelled &&
+        reservation.status === ReservationStatus.CANCELLED
+      )
+        return false;
 
       const resStart = parseISO(reservation.startDateTimeISO);
       return resStart >= dayStart && resStart <= dayEnd;
     });
   }
 
-  findBySectorAndDate(sectorId: string, date: string): Reservation[] {
+  findBySectorAndDate(
+    sectorId: string,
+    date: string,
+    includeCancelled = false
+  ): Reservation[] {
     const dayStart = startOfDay(parseISO(date));
     const dayEnd = endOfDay(parseISO(date));
 
     return Array.from(this.reservations.values()).filter((reservation) => {
       if (reservation.sectorId !== sectorId) return false;
-      if (reservation.status === "CANCELLED") return false;
+      if (
+        !includeCancelled &&
+        reservation.status === ReservationStatus.CANCELLED
+      )
+        return false;
 
       const resStart = parseISO(reservation.startDateTimeISO);
       return resStart >= dayStart && resStart <= dayEnd;
@@ -76,7 +92,7 @@ class ReservationRepository {
 
     return Array.from(this.reservations.values()).filter((reservation) => {
       if (reservation.sectorId !== sectorId) return false;
-      if (reservation.status === "CANCELLED") return false;
+      if (reservation.status === ReservationStatus.CANCELLED) return false;
       if (excludeId && reservation.id === excludeId) return false;
 
       const resStart = parseISO(reservation.startDateTimeISO);
@@ -94,6 +110,22 @@ class ReservationRepository {
     return reservation;
   }
 
+  cancel(id: string): Reservation | undefined {
+    const reservation = this.reservations.get(id);
+    if (!reservation) {
+      return undefined;
+    }
+    const now = new Date().toISOString();
+    const updated = {
+      ...reservation,
+      status: ReservationStatus.CANCELLED,
+      cancelledAt: now,
+      updatedAt: now,
+    };
+    this.reservations.set(id, updated);
+    return updated;
+  }
+
   delete(id: string): boolean {
     return this.reservations.delete(id);
   }
@@ -105,4 +137,3 @@ class ReservationRepository {
 }
 
 export const reservationRepository = new ReservationRepository();
-

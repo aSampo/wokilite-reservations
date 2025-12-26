@@ -357,7 +357,312 @@ describe("Reservation System - CORE Tests", () => {
     });
   });
 
-  describe("7. Concurrency Control (Mutex)", () => {
+  describe("7. Cancellation", () => {
+    it("should cancel a reservation and set status to CANCELLED with cancelledAt", async () => {
+      const input = {
+        restaurantId: "R1",
+        sectorId: "S1",
+        partySize: 4,
+        startDateTimeISO: "2025-09-08T20:00:00-03:00",
+        customer: {
+          name: "John Doe",
+          phone: "+54 9 11 5555-1234",
+          email: "john.doe@mail.com",
+        },
+      };
+
+      const createResult = await reservationService.createReservation(
+        input,
+        "key-001"
+      );
+      expect(createResult.success).toBe(true);
+      const reservationId = createResult.reservation!.id;
+
+      const cancelled = reservationService.cancelReservation(reservationId);
+      expect(cancelled).toBe(true);
+
+      const reservation = reservationRepository.findById(reservationId);
+      expect(reservation?.status).toBe("CANCELLED");
+      expect(reservation?.cancelledAt).toBeDefined();
+      expect(reservation?.updatedAt).toBeDefined();
+    });
+
+    it("should not return cancelled reservations in getReservation", async () => {
+      const input = {
+        restaurantId: "R1",
+        sectorId: "S1",
+        partySize: 4,
+        startDateTimeISO: "2025-09-08T20:00:00-03:00",
+        customer: {
+          name: "John Doe",
+          phone: "+54 9 11 5555-1234",
+          email: "john.doe@mail.com",
+        },
+      };
+
+      const createResult = await reservationService.createReservation(
+        input,
+        "key-001"
+      );
+      const reservationId = createResult.reservation!.id;
+
+      reservationService.cancelReservation(reservationId);
+
+      const retrieved = reservationService.getReservation(reservationId);
+      expect(retrieved).toBeUndefined();
+    });
+
+    it("should not return cancelled reservations in daily listing", async () => {
+      const input1 = {
+        restaurantId: "R1",
+        sectorId: "S1",
+        partySize: 4,
+        startDateTimeISO: "2025-09-08T20:00:00-03:00",
+        customer: {
+          name: "John Doe",
+          phone: "+54 9 11 5555-1234",
+          email: "john.doe@mail.com",
+        },
+      };
+
+      const input2 = {
+        restaurantId: "R1",
+        sectorId: "S1",
+        partySize: 2,
+        startDateTimeISO: "2025-09-08T21:30:00-03:00",
+        customer: {
+          name: "Jane Smith",
+          phone: "+54 9 11 5555-5678",
+          email: "jane.smith@mail.com",
+        },
+      };
+
+      const result1 = await reservationService.createReservation(
+        input1,
+        "key-001"
+      );
+      const result2 = await reservationService.createReservation(
+        input2,
+        "key-002"
+      );
+
+      reservationService.cancelReservation(result1.reservation!.id);
+
+      const reservations = reservationService.getReservationsForDay(
+        "R1",
+        "2025-09-08"
+      );
+
+      expect(reservations.length).toBe(1);
+      expect(reservations[0].id).toBe(result2.reservation!.id);
+    });
+
+    it("should free up capacity after cancellation", async () => {
+      const input = {
+        restaurantId: "R1",
+        sectorId: "S1",
+        partySize: 6,
+        startDateTimeISO: "2025-09-08T20:00:00-03:00",
+        customer: {
+          name: "John Doe",
+          phone: "+54 9 11 5555-1234",
+          email: "john.doe@mail.com",
+        },
+      };
+
+      const result1 = await reservationService.createReservation(
+        input,
+        "key-001"
+      );
+      expect(result1.success).toBe(true);
+
+      const result2 = await reservationService.createReservation(
+        input,
+        "key-002"
+      );
+      expect(result2.success).toBe(false);
+      expect(result2.error?.code).toBe("no_capacity");
+
+      reservationService.cancelReservation(result1.reservation!.id);
+
+      const result3 = await reservationService.createReservation(
+        input,
+        "key-003"
+      );
+      expect(result3.success).toBe(true);
+    });
+
+    it("should return false when trying to cancel non-existent reservation", () => {
+      const cancelled = reservationService.cancelReservation("NON_EXISTENT");
+      expect(cancelled).toBe(false);
+    });
+
+    it("should return false when trying to cancel already cancelled reservation", async () => {
+      const input = {
+        restaurantId: "R1",
+        sectorId: "S1",
+        partySize: 4,
+        startDateTimeISO: "2025-09-08T20:00:00-03:00",
+        customer: {
+          name: "John Doe",
+          phone: "+54 9 11 5555-1234",
+          email: "john.doe@mail.com",
+        },
+      };
+
+      const createResult = await reservationService.createReservation(
+        input,
+        "key-001"
+      );
+      const reservationId = createResult.reservation!.id;
+
+      const firstCancel = reservationService.cancelReservation(reservationId);
+      expect(firstCancel).toBe(true);
+
+      const secondCancel = reservationService.cancelReservation(reservationId);
+      expect(secondCancel).toBe(false);
+    });
+  });
+
+  describe("8. Include Cancelled Reservations", () => {
+    it("should not include cancelled reservations by default", async () => {
+      const input1 = {
+        restaurantId: "R1",
+        sectorId: "S1",
+        partySize: 4,
+        startDateTimeISO: "2025-09-08T20:00:00-03:00",
+        customer: {
+          name: "John Doe",
+          phone: "+54 9 11 5555-1234",
+          email: "john.doe@mail.com",
+        },
+      };
+
+      const input2 = {
+        restaurantId: "R1",
+        sectorId: "S1",
+        partySize: 2,
+        startDateTimeISO: "2025-09-08T21:30:00-03:00",
+        customer: {
+          name: "Jane Smith",
+          phone: "+54 9 11 5555-5678",
+          email: "jane.smith@mail.com",
+        },
+      };
+
+      const result1 = await reservationService.createReservation(
+        input1,
+        "key-001"
+      );
+      const result2 = await reservationService.createReservation(
+        input2,
+        "key-002"
+      );
+
+      reservationService.cancelReservation(result1.reservation!.id);
+
+      const reservations = reservationService.getReservationsForDay(
+        "R1",
+        "2025-09-08"
+      );
+
+      expect(reservations.length).toBe(1);
+      expect(reservations[0].id).toBe(result2.reservation!.id);
+      expect(reservations[0].status).toBe("CONFIRMED");
+    });
+
+    it("should include cancelled reservations when includeCancelled=true", async () => {
+      const input1 = {
+        restaurantId: "R1",
+        sectorId: "S1",
+        partySize: 4,
+        startDateTimeISO: "2025-09-08T20:00:00-03:00",
+        customer: {
+          name: "John Doe",
+          phone: "+54 9 11 5555-1234",
+          email: "john.doe@mail.com",
+        },
+      };
+
+      const input2 = {
+        restaurantId: "R1",
+        sectorId: "S1",
+        partySize: 2,
+        startDateTimeISO: "2025-09-08T21:30:00-03:00",
+        customer: {
+          name: "Jane Smith",
+          phone: "+54 9 11 5555-5678",
+          email: "jane.smith@mail.com",
+        },
+      };
+
+      const result1 = await reservationService.createReservation(
+        input1,
+        "key-001"
+      );
+      const result2 = await reservationService.createReservation(
+        input2,
+        "key-002"
+      );
+
+      reservationService.cancelReservation(result1.reservation!.id);
+
+      const reservations = reservationService.getReservationsForDay(
+        "R1",
+        "2025-09-08",
+        undefined,
+        true
+      );
+
+      expect(reservations.length).toBe(2);
+      const cancelled = reservations.find((r) => r.status === "CANCELLED");
+      const confirmed = reservations.find((r) => r.status === "CONFIRMED");
+
+      expect(cancelled).toBeDefined();
+      expect(cancelled?.id).toBe(result1.reservation!.id);
+      expect(cancelled?.cancelledAt).toBeDefined();
+
+      expect(confirmed).toBeDefined();
+      expect(confirmed?.id).toBe(result2.reservation!.id);
+    });
+
+    it("should include cancelled reservations for specific sector when includeCancelled=true", async () => {
+      const input1 = {
+        restaurantId: "R1",
+        sectorId: "S1",
+        partySize: 4,
+        startDateTimeISO: "2025-09-08T20:00:00-03:00",
+        customer: {
+          name: "John Doe",
+          phone: "+54 9 11 5555-1234",
+          email: "john.doe@mail.com",
+        },
+      };
+
+      const result1 = await reservationService.createReservation(
+        input1,
+        "key-001"
+      );
+      reservationService.cancelReservation(result1.reservation!.id);
+
+      const reservationsWithoutCancelled =
+        reservationService.getReservationsForDay("R1", "2025-09-08", "S1");
+      expect(reservationsWithoutCancelled.length).toBe(0);
+
+      const reservationsWithCancelled =
+        reservationService.getReservationsForDay(
+          "R1",
+          "2025-09-08",
+          "S1",
+          true
+        );
+      expect(reservationsWithCancelled.length).toBe(1);
+      expect(reservationsWithCancelled[0].status).toBe("CANCELLED");
+      expect(reservationsWithCancelled[0].cancelledAt).toBeDefined();
+    });
+  });
+
+  describe("9. Concurrency Control (Mutex)", () => {
     it("should prevent double booking with concurrent requests to same slot", async () => {
       const input1 = {
         restaurantId: "R1",

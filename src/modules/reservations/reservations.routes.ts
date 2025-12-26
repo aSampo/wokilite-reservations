@@ -109,12 +109,14 @@ router.get("/day", validateQuery(reservationsDayQuerySchema), (req, res) => {
     restaurantId: query.restaurantId,
     date: query.date,
     sectorId: query.sectorId,
+    includeCancelled: query.includeCancelled,
   });
 
   const reservations = reservationService.getReservationsForDay(
     query.restaurantId,
     query.date,
-    query.sectorId
+    query.sectorId,
+    query.includeCancelled
   );
 
   res.json({
@@ -129,6 +131,7 @@ router.get("/day", validateQuery(reservationsDayQuerySchema), (req, res) => {
       status: r.status,
       customer: r.customer,
       ...(r.notes && { notes: r.notes }),
+      ...(r.cancelledAt && { cancelledAt: r.cancelledAt }),
       createdAt: r.createdAt,
       updatedAt: r.updatedAt,
     })),

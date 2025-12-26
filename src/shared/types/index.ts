@@ -37,6 +37,12 @@ export interface Customer {
 
 export type ReservationStatus = "CONFIRMED" | "PENDING" | "CANCELLED";
 
+export const ReservationStatus = {
+  CONFIRMED: "CONFIRMED",
+  PENDING: "PENDING",
+  CANCELLED: "CANCELLED",
+} as const;
+
 export interface Reservation {
   id: string;
   restaurantId: string;
@@ -48,6 +54,7 @@ export interface Reservation {
   status: ReservationStatus;
   customer: Customer;
   notes?: string;
+  cancelledAt?: ISODateTime;
   createdAt: ISODateTime;
   updatedAt: ISODateTime;
 }

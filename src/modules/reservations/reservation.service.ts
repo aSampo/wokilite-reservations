@@ -1,5 +1,9 @@
 import { Mutex } from "async-mutex";
-import { Reservation, Customer } from "../../shared/types/index.js";
+import {
+  Reservation,
+  Customer,
+  ReservationStatus,
+} from "../../shared/types/index.js";
 import {
   restaurantRepository,
   sectorRepository,
@@ -130,7 +134,7 @@ class ReservationService {
         partySize: input.partySize,
         startDateTimeISO: input.startDateTimeISO,
         endDateTimeISO: endISO,
-        status: "CONFIRMED",
+        status: ReservationStatus.CONFIRMED,
         customer: customerWithTimestamps,
         notes: input.notes,
         ...timestamps,
@@ -144,26 +148,40 @@ class ReservationService {
 
   cancelReservation(reservationId: string): boolean {
     const reservation = reservationRepository.findById(reservationId);
-    if (!reservation) {
+    if (!reservation || reservation.status === ReservationStatus.CANCELLED) {
       return false;
     }
 
-    return reservationRepository.delete(reservationId);
+    const cancelled = reservationRepository.cancel(reservationId);
+    return !!cancelled;
   }
 
   getReservation(reservationId: string): Reservation | undefined {
-    return reservationRepository.findById(reservationId);
+    const reservation = reservationRepository.findById(reservationId);
+    if (!reservation || reservation.status === ReservationStatus.CANCELLED) {
+      return undefined;
+    }
+    return reservation;
   }
 
   getReservationsForDay(
     restaurantId: string,
     date: string,
-    sectorId?: string
+    sectorId?: string,
+    includeCancelled = false
   ): Reservation[] {
     if (sectorId) {
-      return reservationRepository.findBySectorAndDate(sectorId, date);
+      return reservationRepository.findBySectorAndDate(
+        sectorId,
+        date,
+        includeCancelled
+      );
     }
-    return reservationRepository.findByRestaurantAndDate(restaurantId, date);
+    return reservationRepository.findByRestaurantAndDate(
+      restaurantId,
+      date,
+      includeCancelled
+    );
   }
 }
 

@@ -147,11 +147,20 @@ DELETE /reservations/:id
 
 **Response:** `204 No Content`
 
+**Note:** This is a soft delete - the reservation's `status` is set to `CANCELLED` and a `cancelledAt` timestamp is added. The reservation remains in storage for audit purposes but is filtered from queries by default (unless `includeCancelled=true` is specified).
+
 ### List Reservations for a Day
 
 ```
-GET /reservations/day?restaurantId=R1&date=2025-09-08[&sectorId=S1]
+GET /reservations/day?restaurantId=R1&date=2025-09-08[&sectorId=S1][&includeCancelled=true]
 ```
+
+**Query Parameters:**
+
+- `restaurantId` (required): Restaurant ID
+- `date` (required): Date in YYYY-MM-DD format
+- `sectorId` (optional): Filter by specific sector
+- `includeCancelled` (optional): Include cancelled reservations (default: false)
 
 **Response 200:**
 
@@ -174,6 +183,8 @@ GET /reservations/day?restaurantId=R1&date=2025-09-08[&sectorId=S1]
   ]
 }
 ```
+
+**Note:** Cancelled reservations will include a `cancelledAt` timestamp in the response when `includeCancelled=true`.
 
 ## 🏗️ Architecture & Design Decisions
 
@@ -270,18 +281,20 @@ All entities include `createdAt` and `updatedAt` (ISO 8601).
 
 ## ✅ Testing
 
-7 test suites covering critical cases:
+**21 tests** covering critical scenarios:
 
-1. **Idempotency:** same key returns same reservation
-2. **Concurrency:** simultaneous requests to same slot → one 201, other 409
-3. **Time Boundaries:** adjacent reservations (end-exclusive) don't collide
-4. **Service Window:** shift validation (422 outside hours)
-5. **Customer Data:** customer information persistence
-6. **Timestamps:** correct `createdAt`/`updatedAt`
-7. **Mutex Control:** `Promise.all` doesn't produce double-booking
+1. **Idempotency** (2) - Same key returns same reservation
+2. **Concurrency** (2) - Simultaneous requests → one succeeds, other 409
+3. **Time Boundaries** (2) - Adjacent reservations don't collide
+4. **Service Window** (2) - Shift validation (422 outside hours)
+5. **Customer Data** (1) - Persistence verification
+6. **Timestamps** (1) - `createdAt`/`updatedAt` correctness
+7. **Cancellation** (6) - Soft delete, capacity freed, idempotent
+8. **Include Cancelled** (3) - Query parameter filtering
+9. **Mutex Control** (2) - `Promise.all` prevents double-booking
 
 ```bash
-npm test               # Run all tests
+npm test               # Run all tests (21 passing)
 npm run test:ui        # Interactive UI
 npm run test:coverage  # Coverage report
 ```
@@ -373,7 +386,7 @@ This project was developed with **Cursor AI** assistance to accelerate:
 ### Assumptions
 
 - Reservations are `CONFIRMED` immediately (no approval flow)
-- Cancellation is hard-delete (no soft-delete)
+- Cancellation sets `status: 'CANCELLED'` and `cancelledAt` timestamp (cancelled reservations remain in storage but are filtered from queries)
 - A restaurant can have multiple sectors
 - Party size must be between `minSize` and `maxSize` of some table
 - Restaurant timezone is valid (IANA)

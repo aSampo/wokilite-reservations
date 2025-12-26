@@ -203,7 +203,7 @@ GET /reservations/day?restaurantId=R1&date=2025-09-08[&sectorId=S1][&includeCanc
 
 #### 1. **Efficient Table Assignment Algorithm**
 
-The algorithm (`table-assignment.service.ts`) finds the best table in **O(R + T)** time:
+The algorithm (`table-assignment.service.ts`) finds the best table efficiently:
 
 **How it works:**
 

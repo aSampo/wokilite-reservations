@@ -149,6 +149,49 @@ DELETE /reservations/:id
 
 **Note:** This is a soft delete - the reservation's `status` is set to `CANCELLED` and a `cancelledAt` timestamp is added. The reservation remains in storage for audit purposes but is filtered from queries by default (unless `includeCancelled=true` is specified).
 
+### Get Restaurant Info
+
+```
+GET /restaurants/info?restaurantId=R1
+```
+
+**Purpose:** Retrieve restaurant metadata and available sectors. This endpoint is designed to populate the frontend with essential information like restaurant name, timezone, service shifts, and sector options for dropdown menus and validation.
+
+**Response 200:**
+
+```json
+{
+  "restaurant": {
+    "id": "R1",
+    "name": "Bistro Central",
+    "timezone": "America/Argentina/Buenos_Aires",
+    "shifts": [
+      { "start": "12:00", "end": "16:00" },
+      { "start": "20:00", "end": "23:45" }
+    ]
+  },
+  "sectors": [
+    { "id": "S1", "name": "Main Hall" },
+    { "id": "S2", "name": "Terrace" }
+  ]
+}
+```
+
+**Error 404 (Restaurant Not Found):**
+
+```json
+{
+  "error": "not_found",
+  "detail": "Restaurant not found"
+}
+```
+
+**Use Cases:**
+
+- Display restaurant name and timezone in the UI
+- Show service hours to users
+- Populate sector dropdown
+
 ### List Reservations for a Day
 
 ```
@@ -319,7 +362,8 @@ src/
 ├── config/                 # Configuration
 ├── modules/
 │   ├── availability/       # Availability logic & routes
-│   └── reservations/       # Reservation logic & routes
+│   ├── reservations/       # Reservation logic & routes
+│   └── restaurants/        # Restaurant info & routes
 ├── shared/
 │   ├── middleware/         # Request ID, idempotency, validation
 │   ├── repositories/       # In-memory data access

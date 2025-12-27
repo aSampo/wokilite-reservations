@@ -7,6 +7,7 @@ import { now } from "./shared/utils/date.js";
 import { requestIdMiddleware } from "./shared/middleware/request-id.js";
 import availabilityRoutes from "./modules/availability/availability.routes.js";
 import reservationsRoutes from "./modules/reservations/reservations.routes.js";
+import restaurantsRoutes from "./modules/restaurants/restaurants.routes.js";
 
 const app = express();
 
@@ -33,6 +34,7 @@ app.get("/health", (req, res) => {
 
 app.use("/availability", availabilityRoutes);
 app.use("/reservations", reservationsRoutes);
+app.use("/restaurants", restaurantsRoutes);
 
 loadSeedData();
 

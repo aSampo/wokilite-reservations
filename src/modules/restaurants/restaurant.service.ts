@@ -10,13 +10,13 @@ export interface RestaurantInfo {
 }
 
 class RestaurantService {
-  getRestaurantInfo(restaurantId: string): RestaurantInfo | null {
-    const restaurant = restaurantRepository.findById(restaurantId);
+  async getRestaurantInfo(restaurantId: string): Promise<RestaurantInfo | null> {
+    const restaurant = await restaurantRepository.findById(restaurantId);
     if (!restaurant) {
       return null;
     }
 
-    const sectors = sectorRepository.findByRestaurantId(restaurantId);
+    const sectors = await sectorRepository.findByRestaurantId(restaurantId);
 
     return {
       restaurant,

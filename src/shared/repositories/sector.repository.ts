@@ -1,41 +1,85 @@
 import { Sector } from "../types/index.js";
+import { prisma } from "../db/prisma.js";
 
 class SectorRepository {
-  private sectors: Map<string, Sector> = new Map();
+  async create(sector: Sector): Promise<Sector> {
+    await prisma.sector.create({
+      data: {
+        id: sector.id,
+        restaurantId: sector.restaurantId,
+        name: sector.name,
+        createdAt: sector.createdAt,
+        updatedAt: sector.updatedAt,
+      },
+    });
 
-  create(sector: Sector): Sector {
-    this.sectors.set(sector.id, sector);
     return sector;
   }
 
-  findById(id: string): Sector | undefined {
-    return this.sectors.get(id);
+  async findById(id: string): Promise<Sector | undefined> {
+    const result = await prisma.sector.findUnique({
+      where: { id },
+    });
+
+    if (!result) return undefined;
+
+    return this.mapToDomain(result);
   }
 
-  findAll(): Sector[] {
-    return Array.from(this.sectors.values());
+  async findAll(): Promise<Sector[]> {
+    const results = await prisma.sector.findMany();
+    return results.map((s) => this.mapToDomain(s));
   }
 
-  findByRestaurantId(restaurantId: string): Sector[] {
-    return Array.from(this.sectors.values()).filter(
-      (sector) => sector.restaurantId === restaurantId
-    );
+  async findByRestaurantId(restaurantId: string): Promise<Sector[]> {
+    const results = await prisma.sector.findMany({
+      where: { restaurantId },
+    });
+    return results.map((s) => this.mapToDomain(s));
   }
 
-  update(id: string, sector: Sector): Sector | undefined {
-    if (!this.sectors.has(id)) {
-      return undefined;
+  async update(id: string, sector: Sector): Promise<Sector | undefined> {
+    const existing = await prisma.sector.findUnique({ where: { id } });
+    if (!existing) return undefined;
+
+    await prisma.sector.update({
+      where: { id },
+      data: {
+        name: sector.name,
+        updatedAt: sector.updatedAt,
+      },
+    });
+
+    return sector;
+  }
+
+  async delete(id: string): Promise<boolean> {
+    try {
+      await prisma.sector.delete({ where: { id } });
+      return true;
+    } catch {
+      return false;
     }
-    this.sectors.set(id, sector);
-    return sector;
   }
 
-  delete(id: string): boolean {
-    return this.sectors.delete(id);
+  async clear(): Promise<void> {
+    await prisma.sector.deleteMany();
   }
 
-  clear(): void {
-    this.sectors.clear();
+  private mapToDomain(db: {
+    id: string;
+    restaurantId: string;
+    name: string;
+    createdAt: string;
+    updatedAt: string;
+  }): Sector {
+    return {
+      id: db.id,
+      restaurantId: db.restaurantId,
+      name: db.name,
+      createdAt: db.createdAt,
+      updatedAt: db.updatedAt,
+    };
   }
 }
 

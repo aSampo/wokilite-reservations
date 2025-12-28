@@ -36,10 +36,15 @@ app.use("/availability", availabilityRoutes);
 app.use("/reservations", reservationsRoutes);
 app.use("/restaurants", restaurantsRoutes);
 
-loadSeedData();
-
-app.listen(config.port, () => {
-  logger.info(`WokiLite server running on port ${config.port}`);
-});
+loadSeedData()
+  .then(() => {
+    app.listen(config.port, () => {
+      logger.info(`WokiLite server running on port ${config.port}`);
+    });
+  })
+  .catch((error) => {
+    logger.error({ error }, "Failed to start server");
+    process.exit(1);
+  });
 
 export { app };

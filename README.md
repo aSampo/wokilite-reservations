@@ -30,6 +30,15 @@ Response:
 # Install dependencies
 npm install
 
+# Setup database (first time only)
+# Create .env file with: echo 'DATABASE_URL="file:./prisma/dev.db"' > .env
+
+# Run database migrations
+npm run prisma:migrate
+
+# Generate Prisma Client
+npm run prisma:generate
+
 # Run in development mode
 npm run dev
 
@@ -43,7 +52,19 @@ npm run build
 npm start
 ```
 
+**First time setup:**
+
+1. Create `.env` file: `echo 'DATABASE_URL="file:./prisma/dev.db"' > .env`
+2. Run `npm run prisma:migrate` to create the database schema
+3. Run `npm run prisma:generate` to generate Prisma Client (already included in build script)
+
 Server will be available at `http://localhost:3000` (configurable via `PORT` env var).
+
+**Database Management:**
+
+- `npm run prisma:migrate` - Create and apply migrations
+- `npm run prisma:studio` - Open Prisma Studio (database GUI)
+- `npm run prisma:generate` - Regenerate Prisma Client after schema changes
 
 ## 📋 API Endpoints
 
@@ -236,6 +257,7 @@ GET /reservations/day?restaurantId=R1&date=2025-09-08[&sectorId=S1][&includeCanc
 - **Runtime:** Node.js 20+
 - **Language:** TypeScript 5.9
 - **Framework:** Express 5.2
+- **Database:** SQLite with Prisma ORM
 - **Validation:** Zod 4.2
 - **Logging:** Pino 10.1
 - **Testing:** Vitest 4.0
@@ -274,9 +296,10 @@ Implemented with **Mutex per sector+slot** using `async-mutex`:
 #### 3. **Idempotency**
 
 - `Idempotency-Key` header on `POST /reservations`
-- In-memory cache of keys → reservation IDs
+- Persistent storage in database (`IdempotencyKey` table)
 - Retry with same key returns original reservation (201)
 - No duplicate reservations on network retry
+- Atomic transaction ensures consistency
 
 #### 4. **Timezone Handling**
 
@@ -299,14 +322,21 @@ Implemented with **Mutex per sector+slot** using `async-mutex`:
 
 ### Data Model
 
-**In-memory storage** with typed repositories:
+**SQLite database** with Prisma ORM:
 
-- `Restaurant`: configuration, timezone, shifts
+- `Restaurant`: configuration, timezone, shifts (stored as JSON)
 - `Sector`: restaurant areas (Main Hall, Terrace, etc.)
 - `Table`: min/max capacity, belongs to a sector
-- `Reservation`: customer data, timestamps, status
+- `Reservation`: customer data, timestamps, status (tableIds stored as JSON)
+- `IdempotencyKey`: idempotency key mapping to reservations
 
 All entities include `createdAt` and `updatedAt` (ISO 8601).
+
+**Database Schema:**
+
+- Located in `prisma/schema.prisma`
+- Migrations in `prisma/migrations/`
+- Database file: `prisma/dev.db` (SQLite)
 
 ### Error Handling
 
@@ -366,11 +396,15 @@ src/
 │   ├── reservations/       # Reservation logic & routes
 │   └── restaurants/        # Restaurant info & routes
 ├── shared/
+│   ├── db/                 # Prisma client singleton
 │   ├── middleware/         # Request ID, idempotency, validation
-│   ├── repositories/       # In-memory data access
+│   ├── repositories/       # Prisma-based data access layer
 │   ├── services/           # Table assignment algorithm
 │   ├── types/              # TypeScript interfaces
 │   └── utils/              # Date, timezone, logger, ID generation
+prisma/
+├── schema.prisma          # Database schema definition
+└── migrations/            # Database migration history
 ├── seed/                   # Initial data (Bistro Central)
 └── index.ts                # Express app entry point
 ```
@@ -380,16 +414,29 @@ src/
 ```bash
 PORT=3000                           # Server port
 NODE_ENV=development                # Environment
+DATABASE_URL="file:./prisma/dev.db" # SQLite database path
 LOG_LEVEL=info                      # Pino log level
 CORS_ORIGIN=*                       # CORS allowed origins
 CORS_CREDENTIALS=false              # CORS credentials
 ```
+
+**Required:**
+
+- `DATABASE_URL`: Path to SQLite database file (default: `file:./prisma/dev.db`)
+
+**Optional:**
+
+- `PORT`: Server port (default: 3000)
+- `NODE_ENV`: Environment mode (development/production)
+- `LOG_LEVEL`: Pino log level (default: info)
 
 ## 🧰 Tools & Libraries Used
 
 ### Core Dependencies
 
 - **Express 5.2:** Web framework (chosen for simplicity and mature ecosystem)
+- **Prisma 6.1:** Type-safe ORM for database access
+- **@prisma/client:** Generated Prisma Client for type-safe queries
 - **Zod 4.2:** Runtime validation with TypeScript inference
 - **Pino 10.1:** High-performance structured logging
 - **date-fns 4.1 + date-fns-tz 3.2:** Immutable date manipulation with timezone support
@@ -422,7 +469,7 @@ This project was developed with **Cursor AI** assistance to accelerate:
 
 ### Limitations
 
-1. **In-memory storage:** data is lost on restart (no database)
+1. **SQLite database:** Single-file database, not suitable for high-concurrency production (consider PostgreSQL for production)
 2. **Single table assignment:** doesn't combine tables for large groups
 3. **No waitlist:** rejects immediately if no capacity
 4. **Fixed 90-min duration:** doesn't vary by party size
@@ -437,13 +484,15 @@ This project was developed with **Cursor AI** assistance to accelerate:
 - Restaurant timezone is valid (IANA)
 - Reservations can be made up to 15 minutes before shift end time (e.g., 14:45 reservation for a shift ending at 15:00)
 
-### Why In-Memory Storage?
+### Database Architecture
 
-Meets CORE requirements and allows fast iteration. In production, would be replaced with PostgreSQL:
+Uses **Prisma with SQLite** for persistent storage:
 
-- Prisma/Drizzle for ORM
-- Unique constraints in DB for double-booking prevention
-- Indexes on `(sectorId, startDateTimeISO, endDateTimeISO)` for overlap queries
+- **Prisma ORM:** Type-safe database access with automatic migrations
+- **SQLite:** Lightweight, file-based database perfect for development
+- **Migrations:** Version-controlled schema changes
+- **Indexes:** Optimized queries on `(sectorId, startDateTimeISO, endDateTimeISO)` for overlap detection
+- **Transactions:** Atomic operations for idempotency and consistency
 
 ### Why async-mutex?
 
@@ -457,6 +506,8 @@ Alternatives considered:
 
 To scale to production:
 
-1. Migrate to relational DB (Postgres)
-2. Implement Redis for idempotency cache
+1. Migrate from SQLite to PostgreSQL (better concurrency)
+2. Implement Redis for distributed idempotency cache (if needed)
 3. Add rate limiting (express-rate-limit)
+4. Consider read replicas for high-traffic read operations
+5. Add database indexes for frequently queried fields

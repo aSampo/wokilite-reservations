@@ -1,20 +1,17 @@
 import { describe, it, expect, beforeEach } from "vitest";
-import {
-  reservationRepository,
-  restaurantRepository,
-  sectorRepository,
-  tableRepository,
-} from "../src/shared/repositories";
+import { reservationRepository } from "../src/shared/repositories";
 import { reservationService } from "../src/modules/reservations/reservation.service";
 import { loadSeedData } from "../src/seed";
+import { prisma } from "../src/shared/db/prisma";
 
 describe("Reservation System - CORE Tests", () => {
-  beforeEach(() => {
-    reservationRepository.clear();
-    restaurantRepository.clear();
-    sectorRepository.clear();
-    tableRepository.clear();
-    loadSeedData();
+  beforeEach(async () => {
+    await prisma.reservation.deleteMany();
+    await prisma.idempotencyKey.deleteMany();
+    await prisma.table.deleteMany();
+    await prisma.sector.deleteMany();
+    await prisma.restaurant.deleteMany();
+    await loadSeedData();
   });
 
   describe("1. Idempotency", () => {
@@ -378,10 +375,12 @@ describe("Reservation System - CORE Tests", () => {
       expect(createResult.success).toBe(true);
       const reservationId = createResult.reservation!.id;
 
-      const cancelled = reservationService.cancelReservation(reservationId);
+      const cancelled = await reservationService.cancelReservation(
+        reservationId
+      );
       expect(cancelled).toBe(true);
 
-      const reservation = reservationRepository.findById(reservationId);
+      const reservation = await reservationRepository.findById(reservationId);
       expect(reservation?.status).toBe("CANCELLED");
       expect(reservation?.cancelledAt).toBeDefined();
       expect(reservation?.updatedAt).toBeDefined();
@@ -406,9 +405,9 @@ describe("Reservation System - CORE Tests", () => {
       );
       const reservationId = createResult.reservation!.id;
 
-      reservationService.cancelReservation(reservationId);
+      await reservationService.cancelReservation(reservationId);
 
-      const retrieved = reservationService.getReservation(reservationId);
+      const retrieved = await reservationService.getReservation(reservationId);
       expect(retrieved).toBeUndefined();
     });
 
@@ -446,9 +445,9 @@ describe("Reservation System - CORE Tests", () => {
         "key-002"
       );
 
-      reservationService.cancelReservation(result1.reservation!.id);
+      await reservationService.cancelReservation(result1.reservation!.id);
 
-      const reservations = reservationService.getReservationsForDay(
+      const reservations = await reservationService.getReservationsForDay(
         "R1",
         "2025-09-08"
       );
@@ -483,7 +482,7 @@ describe("Reservation System - CORE Tests", () => {
       expect(result2.success).toBe(false);
       expect(result2.error?.code).toBe("no_capacity");
 
-      reservationService.cancelReservation(result1.reservation!.id);
+      await reservationService.cancelReservation(result1.reservation!.id);
 
       const result3 = await reservationService.createReservation(
         input,
@@ -492,8 +491,10 @@ describe("Reservation System - CORE Tests", () => {
       expect(result3.success).toBe(true);
     });
 
-    it("should return false when trying to cancel non-existent reservation", () => {
-      const cancelled = reservationService.cancelReservation("NON_EXISTENT");
+    it("should return false when trying to cancel non-existent reservation", async () => {
+      const cancelled = await reservationService.cancelReservation(
+        "NON_EXISTENT"
+      );
       expect(cancelled).toBe(false);
     });
 
@@ -516,10 +517,14 @@ describe("Reservation System - CORE Tests", () => {
       );
       const reservationId = createResult.reservation!.id;
 
-      const firstCancel = reservationService.cancelReservation(reservationId);
+      const firstCancel = await reservationService.cancelReservation(
+        reservationId
+      );
       expect(firstCancel).toBe(true);
 
-      const secondCancel = reservationService.cancelReservation(reservationId);
+      const secondCancel = await reservationService.cancelReservation(
+        reservationId
+      );
       expect(secondCancel).toBe(false);
     });
   });
@@ -559,9 +564,9 @@ describe("Reservation System - CORE Tests", () => {
         "key-002"
       );
 
-      reservationService.cancelReservation(result1.reservation!.id);
+      await reservationService.cancelReservation(result1.reservation!.id);
 
-      const reservations = reservationService.getReservationsForDay(
+      const reservations = await reservationService.getReservationsForDay(
         "R1",
         "2025-09-08"
       );
@@ -605,9 +610,9 @@ describe("Reservation System - CORE Tests", () => {
         "key-002"
       );
 
-      reservationService.cancelReservation(result1.reservation!.id);
+      await reservationService.cancelReservation(result1.reservation!.id);
 
-      const reservations = reservationService.getReservationsForDay(
+      const reservations = await reservationService.getReservationsForDay(
         "R1",
         "2025-09-08",
         undefined,
@@ -643,14 +648,18 @@ describe("Reservation System - CORE Tests", () => {
         input1,
         "key-001"
       );
-      reservationService.cancelReservation(result1.reservation!.id);
+      await reservationService.cancelReservation(result1.reservation!.id);
 
       const reservationsWithoutCancelled =
-        reservationService.getReservationsForDay("R1", "2025-09-08", "S1");
+        await reservationService.getReservationsForDay(
+          "R1",
+          "2025-09-08",
+          "S1"
+        );
       expect(reservationsWithoutCancelled.length).toBe(0);
 
       const reservationsWithCancelled =
-        reservationService.getReservationsForDay(
+        await reservationService.getReservationsForDay(
           "R1",
           "2025-09-08",
           "S1",
@@ -767,11 +776,11 @@ describe("Reservation System - CORE Tests", () => {
       await reservationService.createReservation(input1, "tz-key-001");
       await reservationService.createReservation(input2, "tz-key-002");
 
-      const reservationsOn28 = reservationService.getReservationsForDay(
+      const reservationsOn28 = await reservationService.getReservationsForDay(
         "R1",
         "2025-12-28"
       );
-      const reservationsOn29 = reservationService.getReservationsForDay(
+      const reservationsOn29 = await reservationService.getReservationsForDay(
         "R1",
         "2025-12-29"
       );
@@ -815,12 +824,12 @@ describe("Reservation System - CORE Tests", () => {
       await reservationService.createReservation(input1, "sector-tz-001");
       await reservationService.createReservation(input2, "sector-tz-002");
 
-      const s1ReservationsOn28 = reservationService.getReservationsForDay(
+      const s1ReservationsOn28 = await reservationService.getReservationsForDay(
         "R1",
         "2025-12-28",
         "S1"
       );
-      const s2ReservationsOn29 = reservationService.getReservationsForDay(
+      const s2ReservationsOn29 = await reservationService.getReservationsForDay(
         "R1",
         "2025-12-29",
         "S2"

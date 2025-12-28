@@ -55,13 +55,13 @@ class ReservationService {
     return await mutex.runExclusive(async () => {
       if (idempotencyKey) {
         const existing =
-          reservationRepository.findByIdempotencyKey(idempotencyKey);
+          await reservationRepository.findByIdempotencyKey(idempotencyKey);
         if (existing) {
           return { success: true, reservation: existing };
         }
       }
 
-      const restaurant = restaurantRepository.findById(input.restaurantId);
+      const restaurant = await restaurantRepository.findById(input.restaurantId);
       if (!restaurant) {
         return {
           success: false,
@@ -69,7 +69,7 @@ class ReservationService {
         };
       }
 
-      const sector = sectorRepository.findById(input.sectorId);
+      const sector = await sectorRepository.findById(input.sectorId);
       if (!sector) {
         return {
           success: false,
@@ -97,7 +97,7 @@ class ReservationService {
         };
       }
 
-      const assignment = findAvailableTable(
+      const assignment = await findAvailableTable(
         input.sectorId,
         input.startDateTimeISO,
         input.partySize,
@@ -140,44 +140,49 @@ class ReservationService {
         ...timestamps,
       };
 
-      const created = reservationRepository.create(reservation, idempotencyKey);
+      const created = await reservationRepository.create(
+        reservation,
+        idempotencyKey
+      );
 
       return { success: true, reservation: created };
     });
   }
 
-  cancelReservation(reservationId: string): boolean {
-    const reservation = reservationRepository.findById(reservationId);
+  async cancelReservation(reservationId: string): Promise<boolean> {
+    const reservation = await reservationRepository.findById(reservationId);
     if (!reservation || reservation.status === ReservationStatus.CANCELLED) {
       return false;
     }
 
-    const cancelled = reservationRepository.cancel(reservationId);
+    const cancelled = await reservationRepository.cancel(reservationId);
     return !!cancelled;
   }
 
-  getReservation(reservationId: string): Reservation | undefined {
-    const reservation = reservationRepository.findById(reservationId);
+  async getReservation(
+    reservationId: string
+  ): Promise<Reservation | undefined> {
+    const reservation = await reservationRepository.findById(reservationId);
     if (!reservation || reservation.status === ReservationStatus.CANCELLED) {
       return undefined;
     }
     return reservation;
   }
 
-  getReservationsForDay(
+  async getReservationsForDay(
     restaurantId: string,
     date: string,
     sectorId?: string,
     includeCancelled = false
-  ): Reservation[] {
+  ): Promise<Reservation[]> {
     if (sectorId) {
-      return reservationRepository.findBySectorAndDate(
+      return await reservationRepository.findBySectorAndDate(
         sectorId,
         date,
         includeCancelled
       );
     }
-    return reservationRepository.findByRestaurantAndDate(
+    return await reservationRepository.findByRestaurantAndDate(
       restaurantId,
       date,
       includeCancelled

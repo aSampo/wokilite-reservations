@@ -1,8 +1,8 @@
 import { Reservation, ReservationStatus } from "../types/index.js";
-import { parseISO, startOfDay, endOfDay } from "date-fns";
+import { parseISO } from "date-fns";
 import { restaurantRepository } from "./restaurant.repository.js";
 import { sectorRepository } from "./sector.repository.js";
-import { createDateInTimezone } from "../utils/timezone.js";
+import { getLocalDateString } from "../utils/timezone.js";
 
 class ReservationRepository {
   private reservations: Map<string, Reservation> = new Map();
@@ -50,13 +50,6 @@ class ReservationRepository {
     const restaurant = restaurantRepository.findById(restaurantId);
     if (!restaurant) return [];
 
-    const dayStartInTz = startOfDay(
-      createDateInTimezone(date, "00:00", restaurant.timezone)
-    );
-    const dayEndInTz = endOfDay(
-      createDateInTimezone(date, "00:00", restaurant.timezone)
-    );
-
     return Array.from(this.reservations.values()).filter((reservation) => {
       if (reservation.restaurantId !== restaurantId) return false;
       if (
@@ -65,8 +58,11 @@ class ReservationRepository {
       )
         return false;
 
-      const resStart = parseISO(reservation.startDateTimeISO);
-      return resStart >= dayStartInTz && resStart <= dayEndInTz;
+      const reservationLocalDate = getLocalDateString(
+        reservation.startDateTimeISO,
+        restaurant.timezone
+      );
+      return reservationLocalDate === date;
     });
   }
 
@@ -81,13 +77,6 @@ class ReservationRepository {
     const restaurant = restaurantRepository.findById(sector.restaurantId);
     if (!restaurant) return [];
 
-    const dayStartInTz = startOfDay(
-      createDateInTimezone(date, "00:00", restaurant.timezone)
-    );
-    const dayEndInTz = endOfDay(
-      createDateInTimezone(date, "00:00", restaurant.timezone)
-    );
-
     return Array.from(this.reservations.values()).filter((reservation) => {
       if (reservation.sectorId !== sectorId) return false;
       if (
@@ -96,8 +85,11 @@ class ReservationRepository {
       )
         return false;
 
-      const resStart = parseISO(reservation.startDateTimeISO);
-      return resStart >= dayStartInTz && resStart <= dayEndInTz;
+      const reservationLocalDate = getLocalDateString(
+        reservation.startDateTimeISO,
+        restaurant.timezone
+      );
+      return reservationLocalDate === date;
     });
   }
 

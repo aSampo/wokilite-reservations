@@ -34,3 +34,11 @@ export function isTimeInRange(
 ): boolean {
   return timeStr >= startTime && timeStr < endTime;
 }
+
+export function getLocalDateString(
+  isoString: string,
+  timezone: string
+): string {
+  const zonedDate = toZonedTime(parseISO(isoString), timezone);
+  return format(zonedDate, "yyyy-MM-dd");
+}

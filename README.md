@@ -324,7 +324,7 @@ All entities include `createdAt` and `updatedAt` (ISO 8601).
 
 ## ✅ Testing
 
-**21 tests** covering critical scenarios:
+**23 tests** covering critical scenarios:
 
 1. **Idempotency** (2) - Same key returns same reservation
 2. **Concurrency** (2) - Simultaneous requests → one succeeds, other 409
@@ -335,9 +335,10 @@ All entities include `createdAt` and `updatedAt` (ISO 8601).
 7. **Cancellation** (6) - Soft delete, capacity freed, idempotent
 8. **Include Cancelled** (3) - Query parameter filtering
 9. **Mutex Control** (2) - `Promise.all` prevents double-booking
+10. **Timezone Handling** (2) - Daily queries respect restaurant timezone
 
 ```bash
-npm test               # Run all tests (21 passing)
+npm test               # Run all tests (23 passing)
 npm run test:ui        # Interactive UI
 npm run test:coverage  # Coverage report
 ```

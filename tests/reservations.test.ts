@@ -737,4 +737,106 @@ describe("Reservation System - CORE Tests", () => {
       expect(result2.success).toBe(true);
     });
   });
+
+  describe("10. Timezone Handling in Daily Queries", () => {
+    it("should return only reservations that start on the requested date in restaurant timezone", async () => {
+      const input1 = {
+        restaurantId: "R1",
+        sectorId: "S1",
+        partySize: 2,
+        startDateTimeISO: "2025-12-28T21:30:00-03:00",
+        customer: {
+          name: "John Doe",
+          phone: "+54 9 11 5555-1234",
+          email: "john.doe@mail.com",
+        },
+      };
+
+      const input2 = {
+        restaurantId: "R1",
+        sectorId: "S1",
+        partySize: 2,
+        startDateTimeISO: "2025-12-29T20:00:00-03:00",
+        customer: {
+          name: "Jane Smith",
+          phone: "+54 9 11 5555-5678",
+          email: "jane.smith@mail.com",
+        },
+      };
+
+      await reservationService.createReservation(input1, "tz-key-001");
+      await reservationService.createReservation(input2, "tz-key-002");
+
+      const reservationsOn28 = reservationService.getReservationsForDay(
+        "R1",
+        "2025-12-28"
+      );
+      const reservationsOn29 = reservationService.getReservationsForDay(
+        "R1",
+        "2025-12-29"
+      );
+
+      expect(reservationsOn28.length).toBe(1);
+      expect(reservationsOn28[0].startDateTimeISO).toBe(
+        "2025-12-28T21:30:00-03:00"
+      );
+
+      expect(reservationsOn29.length).toBe(1);
+      expect(reservationsOn29[0].startDateTimeISO).toBe(
+        "2025-12-29T20:00:00-03:00"
+      );
+    });
+
+    it("should correctly filter reservations by sector and date in restaurant timezone", async () => {
+      const input1 = {
+        restaurantId: "R1",
+        sectorId: "S1",
+        partySize: 2,
+        startDateTimeISO: "2025-12-28T23:30:00-03:00",
+        customer: {
+          name: "John Doe",
+          phone: "+54 9 11 5555-1234",
+          email: "john.doe@mail.com",
+        },
+      };
+
+      const input2 = {
+        restaurantId: "R1",
+        sectorId: "S2",
+        partySize: 2,
+        startDateTimeISO: "2025-12-29T20:00:00-03:00",
+        customer: {
+          name: "Jane Smith",
+          phone: "+54 9 11 5555-5678",
+          email: "jane.smith@mail.com",
+        },
+      };
+
+      await reservationService.createReservation(input1, "sector-tz-001");
+      await reservationService.createReservation(input2, "sector-tz-002");
+
+      const s1ReservationsOn28 = reservationService.getReservationsForDay(
+        "R1",
+        "2025-12-28",
+        "S1"
+      );
+      const s2ReservationsOn29 = reservationService.getReservationsForDay(
+        "R1",
+        "2025-12-29",
+        "S2"
+      );
+
+      expect(s1ReservationsOn28.length).toBe(1);
+      expect(s1ReservationsOn28[0].sectorId).toBe("S1");
+      expect(s1ReservationsOn28[0].startDateTimeISO).toBe(
+        "2025-12-28T23:30:00-03:00"
+      );
+
+      expect(s2ReservationsOn29.length).toBe(1);
+      expect(s2ReservationsOn29[0].sectorId).toBe("S2");
+      expect(s2ReservationsOn29[0].startDateTimeISO).toBe(
+        "2025-12-29T20:00:00-03:00"
+      );
+    });
+  });
 });

@@ -5,3 +5,4 @@ export const restaurantInfoQuerySchema = z.object({
 });
 
 export type RestaurantInfoQuery = z.infer<typeof restaurantInfoQuerySchema>;
+

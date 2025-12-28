@@ -12,14 +12,14 @@ export interface TableAssignmentResult {
   reason?: string;
 }
 
-export function findAvailableTable(
+export async function findAvailableTable(
   sectorId: string,
   startISO: string,
   partySize: number,
   timezone: string
-): TableAssignmentResult {
+): Promise<TableAssignmentResult> {
   // Step 1: Get all tables in this sector
-  const tables = tableRepository.findBySectorId(sectorId);
+  const tables = await tableRepository.findBySectorId(sectorId);
 
   if (tables.length === 0) {
     return { tableIds: [], reason: "no_tables_in_sector" };
@@ -31,7 +31,7 @@ export function findAvailableTable(
   const endISO = formatInTimezone(endDate, timezone);
 
   // Step 3: Find all overlapping reservations (single query - O(R))
-  const overlappingReservations = reservationRepository.findOverlapping(
+  const overlappingReservations = await reservationRepository.findOverlapping(
     sectorId,
     startISO,
     endISO

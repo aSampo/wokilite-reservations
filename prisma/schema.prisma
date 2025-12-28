@@ -75,3 +75,11 @@ model Reservation {
   @@map("reservations")
 }
 
+model IdempotencyKey {
+  key           String @id
+  reservationId String
+  createdAt     String
+
+  @@map("idempotency_keys")
+}
+

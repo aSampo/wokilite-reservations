@@ -88,15 +88,15 @@ export function formatSlot(slot: Date, timezone: string): string {
   return formatInTimezone(slot, timezone, "yyyy-MM-dd'T'HH:mm:ssXXX");
 }
 
-export function getAvailability(
+export async function getAvailability(
   input: GetAvailabilityInput
-): AvailabilityResponse | { error: string; message: string } {
-  const restaurant = restaurantRepository.findById(input.restaurantId);
+): Promise<AvailabilityResponse | { error: string; message: string }> {
+  const restaurant = await restaurantRepository.findById(input.restaurantId);
   if (!restaurant) {
     return { error: "not_found", message: "Restaurant not found" };
   }
 
-  const sector = sectorRepository.findById(input.sectorId);
+  const sector = await sectorRepository.findById(input.sectorId);
   if (!sector) {
     return { error: "not_found", message: "Sector not found" };
   }
@@ -114,7 +114,7 @@ export function getAvailability(
   for (const slotDate of slotDates) {
     const slotISO = formatSlot(slotDate, restaurant.timezone);
 
-    const assignment = findAvailableTable(
+    const assignment = await findAvailableTable(
       input.sectorId,
       slotISO,
       input.partySize,

@@ -9,7 +9,7 @@ import { logger } from "../../shared/utils/logger.js";
 
 const router = Router();
 
-router.get("/", validateQuery(availabilityQuerySchema), (req, res) => {
+router.get("/", validateQuery(availabilityQuerySchema), async (req, res) => {
   const query = (req as any).validatedQuery as AvailabilityQuery;
   const requestId = (req as any).requestId;
 
@@ -22,7 +22,7 @@ router.get("/", validateQuery(availabilityQuerySchema), (req, res) => {
     partySize: query.partySize,
   });
 
-  const result = getAvailability({
+  const result = await getAvailability({
     restaurantId: query.restaurantId,
     sectorId: query.sectorId,
     date: query.date,

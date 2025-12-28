@@ -69,7 +69,7 @@ router.post(
   }
 );
 
-router.delete("/:id", (req, res) => {
+router.delete("/:id", async (req, res) => {
   const { id } = req.params;
   const requestId = (req as any).requestId;
 
@@ -79,7 +79,7 @@ router.delete("/:id", (req, res) => {
     reservationId: id,
   });
 
-  const reservation = reservationService.getReservation(id);
+  const reservation = await reservationService.getReservation(id);
   if (!reservation) {
     res.status(404).json({
       error: "not_found",
@@ -88,7 +88,7 @@ router.delete("/:id", (req, res) => {
     return;
   }
 
-  const deleted = reservationService.cancelReservation(id);
+  const deleted = await reservationService.cancelReservation(id);
   if (deleted) {
     res.status(204).send();
   } else {
@@ -99,7 +99,7 @@ router.delete("/:id", (req, res) => {
   }
 });
 
-router.get("/day", validateQuery(reservationsDayQuerySchema), (req, res) => {
+router.get("/day", validateQuery(reservationsDayQuerySchema), async (req, res) => {
   const query = (req as any).validatedQuery as ReservationsDayQuery;
   const requestId = (req as any).requestId;
 
@@ -112,7 +112,7 @@ router.get("/day", validateQuery(reservationsDayQuerySchema), (req, res) => {
     includeCancelled: query.includeCancelled,
   });
 
-  const reservations = reservationService.getReservationsForDay(
+  const reservations = await reservationService.getReservationsForDay(
     query.restaurantId,
     query.date,
     query.sectorId,

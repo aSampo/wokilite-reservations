@@ -9,7 +9,7 @@ import { logger } from "../../shared/utils/logger.js";
 
 const router = Router();
 
-router.get("/info", validateQuery(restaurantInfoQuerySchema), (req, res) => {
+router.get("/info", validateQuery(restaurantInfoQuerySchema), async (req, res) => {
   const query = (req as any).validatedQuery as RestaurantInfoQuery;
   const requestId = (req as any).requestId;
 
@@ -19,7 +19,7 @@ router.get("/info", validateQuery(restaurantInfoQuerySchema), (req, res) => {
     restaurantId: query.restaurantId,
   });
 
-  const info = restaurantService.getRestaurantInfo(query.restaurantId);
+  const info = await restaurantService.getRestaurantInfo(query.restaurantId);
 
   if (!info) {
     res.status(404).json({

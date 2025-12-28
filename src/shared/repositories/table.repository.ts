@@ -1,47 +1,100 @@
 import { Table } from "../types/index.js";
+import { prisma } from "../db/prisma.js";
 
 class TableRepository {
-  private tables: Map<string, Table> = new Map();
+  async create(table: Table): Promise<Table> {
+    await prisma.table.create({
+      data: {
+        id: table.id,
+        sectorId: table.sectorId,
+        name: table.name,
+        minSize: table.minSize,
+        maxSize: table.maxSize,
+        createdAt: table.createdAt,
+        updatedAt: table.updatedAt,
+      },
+    });
 
-  create(table: Table): Table {
-    this.tables.set(table.id, table);
     return table;
   }
 
-  findById(id: string): Table | undefined {
-    return this.tables.get(id);
+  async findById(id: string): Promise<Table | undefined> {
+    const result = await prisma.table.findUnique({
+      where: { id },
+    });
+
+    if (!result) return undefined;
+
+    return this.mapToDomain(result);
   }
 
-  findAll(): Table[] {
-    return Array.from(this.tables.values());
+  async findAll(): Promise<Table[]> {
+    const results = await prisma.table.findMany();
+    return results.map((t) => this.mapToDomain(t));
   }
 
-  findBySectorId(sectorId: string): Table[] {
-    return Array.from(this.tables.values()).filter(
-      (table) => table.sectorId === sectorId
-    );
+  async findBySectorId(sectorId: string): Promise<Table[]> {
+    const results = await prisma.table.findMany({
+      where: { sectorId },
+    });
+    return results.map((t) => this.mapToDomain(t));
   }
 
-  findByIds(ids: string[]): Table[] {
-    return ids
-      .map((id) => this.tables.get(id))
-      .filter((table): table is Table => table !== undefined);
+  async findByIds(ids: string[]): Promise<Table[]> {
+    const results = await prisma.table.findMany({
+      where: { id: { in: ids } },
+    });
+    return results.map((t) => this.mapToDomain(t));
   }
 
-  update(id: string, table: Table): Table | undefined {
-    if (!this.tables.has(id)) {
-      return undefined;
+  async update(id: string, table: Table): Promise<Table | undefined> {
+    const existing = await prisma.table.findUnique({ where: { id } });
+    if (!existing) return undefined;
+
+    await prisma.table.update({
+      where: { id },
+      data: {
+        name: table.name,
+        minSize: table.minSize,
+        maxSize: table.maxSize,
+        updatedAt: table.updatedAt,
+      },
+    });
+
+    return table;
+  }
+
+  async delete(id: string): Promise<boolean> {
+    try {
+      await prisma.table.delete({ where: { id } });
+      return true;
+    } catch {
+      return false;
     }
-    this.tables.set(id, table);
-    return table;
   }
 
-  delete(id: string): boolean {
-    return this.tables.delete(id);
+  async clear(): Promise<void> {
+    await prisma.table.deleteMany();
   }
 
-  clear(): void {
-    this.tables.clear();
+  private mapToDomain(db: {
+    id: string;
+    sectorId: string;
+    name: string;
+    minSize: number;
+    maxSize: number;
+    createdAt: string;
+    updatedAt: string;
+  }): Table {
+    return {
+      id: db.id,
+      sectorId: db.sectorId,
+      name: db.name,
+      minSize: db.minSize,
+      maxSize: db.maxSize,
+      createdAt: db.createdAt,
+      updatedAt: db.updatedAt,
+    };
   }
 }
 

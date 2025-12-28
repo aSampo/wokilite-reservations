@@ -10,7 +10,11 @@
     "test": "vitest",
     "test:ui": "vitest --ui",
     "test:coverage": "vitest --coverage",
-    "lint": "tsc --noEmit"
+    "lint": "tsc --noEmit",
+    "prisma:generate": "prisma generate",
+    "prisma:migrate": "prisma migrate dev",
+    "prisma:migrate:deploy": "prisma migrate deploy",
+    "prisma:studio": "prisma studio"
   },
   "keywords": [
     "restaurant",
@@ -21,6 +25,7 @@
   "license": "ISC",
   "description": "WokiLite - Restaurant Reservation System",
   "dependencies": {
+    "@prisma/client": "^6.1.0",
     "async-mutex": "^0.5.0",
     "cors": "^2.8.5",
     "date-fns": "^4.1.0",
@@ -35,6 +40,7 @@
     "@types/express": "^5.0.6",
     "@types/node": "^25.0.3",
     "@vitest/ui": "^4.0.16",
+    "prisma": "^6.1.0",
     "tsx": "^4.21.0",
     "typescript": "^5.9.3",
     "vitest": "^4.0.16"

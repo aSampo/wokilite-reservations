@@ -1,0 +1,77 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Restaurant {
+  id        String   @id
+  name      String
+  timezone  String
+  shifts    String?
+  createdAt String
+  updatedAt String
+
+  sectors     Sector[]
+  reservations Reservation[]
+
+  @@map("restaurants")
+}
+
+model Sector {
+  id           String   @id
+  restaurantId String
+  name         String
+  createdAt    String
+  updatedAt    String
+
+  restaurant Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+  tables     Table[]
+  reservations Reservation[]
+
+  @@map("sectors")
+}
+
+model Table {
+  id        String   @id
+  sectorId  String
+  name      String
+  minSize   Int
+  maxSize   Int
+  createdAt String
+  updatedAt String
+
+  sector Sector @relation(fields: [sectorId], references: [id], onDelete: Cascade)
+
+  @@map("tables")
+}
+
+model Reservation {
+  id               String   @id
+  restaurantId     String
+  sectorId         String
+  tableIds         String
+  partySize        Int
+  startDateTimeISO String
+  endDateTimeISO   String
+  status           String
+  customerName     String
+  customerPhone    String
+  customerEmail    String
+  customerCreatedAt String
+  customerUpdatedAt String
+  notes            String?
+  cancelledAt      String?
+  createdAt        String
+  updatedAt        String
+
+  restaurant Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+  sector     Sector     @relation(fields: [sectorId], references: [id], onDelete: Cascade)
+
+  @@index([sectorId, startDateTimeISO, endDateTimeISO])
+  @@map("reservations")
+}
+

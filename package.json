@@ -5,9 +5,9 @@
   "type": "module",
   "scripts": {
     "dev": "tsx watch src/index.ts",
-    "build": "tsc",
+    "build": "tsc && prisma generate",
     "start": "node dist/index.js",
-    "start:prod": "prisma migrate deploy && prisma generate && node dist/index.js",
+    "start:prod": "prisma migrate deploy && node dist/index.js",
     "test": "vitest",
     "test:ui": "vitest --ui",
     "test:coverage": "vitest --coverage",

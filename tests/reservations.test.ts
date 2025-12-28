@@ -6,19 +6,6 @@ import { prisma } from "../src/shared/db/prisma";
 
 describe("Reservation System - CORE Tests", () => {
   beforeEach(async () => {
-    // Ensure idempotency_keys table exists
-    try {
-      await prisma.$executeRaw`
-        CREATE TABLE IF NOT EXISTS idempotency_keys (
-          key TEXT NOT NULL PRIMARY KEY,
-          reservationId TEXT NOT NULL,
-          createdAt TEXT NOT NULL
-        )
-      `;
-    } catch (error) {
-      // Table might already exist, ignore error
-    }
-
     await prisma.reservation.deleteMany();
     await prisma.idempotencyKey.deleteMany();
     await prisma.table.deleteMany();

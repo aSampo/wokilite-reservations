@@ -1,8 +1,8 @@
 import { Reservation, ReservationStatus } from "../types/index.js";
 import { parseISO, startOfDay, endOfDay } from "date-fns";
-import { fromZonedTime } from "date-fns-tz";
 import { restaurantRepository } from "./restaurant.repository.js";
 import { sectorRepository } from "./sector.repository.js";
+import { createDateInTimezone } from "../utils/timezone.js";
 
 class ReservationRepository {
   private reservations: Map<string, Reservation> = new Map();
@@ -50,9 +50,12 @@ class ReservationRepository {
     const restaurant = restaurantRepository.findById(restaurantId);
     if (!restaurant) return [];
 
-    const dateInTz = fromZonedTime(date, restaurant.timezone);
-    const dayStartInTz = startOfDay(dateInTz);
-    const dayEndInTz = endOfDay(dateInTz);
+    const dayStartInTz = startOfDay(
+      createDateInTimezone(date, "00:00", restaurant.timezone)
+    );
+    const dayEndInTz = endOfDay(
+      createDateInTimezone(date, "00:00", restaurant.timezone)
+    );
 
     return Array.from(this.reservations.values()).filter((reservation) => {
       if (reservation.restaurantId !== restaurantId) return false;
@@ -78,9 +81,12 @@ class ReservationRepository {
     const restaurant = restaurantRepository.findById(sector.restaurantId);
     if (!restaurant) return [];
 
-    const dateInTz = fromZonedTime(date, restaurant.timezone);
-    const dayStartInTz = startOfDay(dateInTz);
-    const dayEndInTz = endOfDay(dateInTz);
+    const dayStartInTz = startOfDay(
+      createDateInTimezone(date, "00:00", restaurant.timezone)
+    );
+    const dayEndInTz = endOfDay(
+      createDateInTimezone(date, "00:00", restaurant.timezone)
+    );
 
     return Array.from(this.reservations.values()).filter((reservation) => {
       if (reservation.sectorId !== sectorId) return false;

@@ -42,7 +42,7 @@ npm run prisma:generate
 # Run in development mode
 npm run dev
 
-# Run tests
+# Run tests (requires prisma:generate and prisma:migrate first)
 npm test
 
 # Build for production
@@ -367,11 +367,20 @@ All entities include `createdAt` and `updatedAt` (ISO 8601).
 9. **Mutex Control** (2) - `Promise.all` prevents double-booking
 10. **Timezone Handling** (2) - Daily queries respect restaurant timezone
 
+**⚠️ Important: Before running tests, you must:**
+
+1. Generate Prisma Client: `npm run prisma:generate`
+2. Setup database: `npm run prisma:migrate`
+
+Then run the tests:
+
 ```bash
 npm test               # Run all tests (23 passing)
 npm run test:ui        # Interactive UI
 npm run test:coverage  # Coverage report
 ```
+
+**Note:** The database must exist and Prisma Client must be generated before running tests, otherwise you'll get "Error code 14: Unable to open the database file".
 
 ## 🎯 CORE Requirements Implemented
 

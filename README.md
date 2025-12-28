@@ -31,8 +31,7 @@ Response:
 npm install
 
 # Setup database (first time only)
-# Create .env file with DATABASE_URL="file:./prisma/dev.db"
-cp .env.example .env
+# Create .env file with: echo 'DATABASE_URL="file:./prisma/dev.db"' > .env
 
 # Run database migrations
 npm run prisma:migrate
@@ -55,9 +54,9 @@ npm start
 
 **First time setup:**
 
-1. Copy `.env.example` to `.env` (or create `.env` with `DATABASE_URL="file:./prisma/dev.db"`)
+1. Create `.env` file: `echo 'DATABASE_URL="file:./prisma/dev.db"' > .env`
 2. Run `npm run prisma:migrate` to create the database schema
-3. Run `npm run prisma:generate` to generate Prisma Client
+3. Run `npm run prisma:generate` to generate Prisma Client (already included in build script)
 
 Server will be available at `http://localhost:3000` (configurable via `PORT` env var).
 
@@ -495,12 +494,6 @@ Uses **Prisma with SQLite** for persistent storage:
 - **Indexes:** Optimized queries on `(sectorId, startDateTimeISO, endDateTimeISO)` for overlap detection
 - **Transactions:** Atomic operations for idempotency and consistency
 
-**For Production:**
-
-- Consider migrating to PostgreSQL for better concurrency and scalability
-- Use connection pooling
-- Add read replicas for high-traffic scenarios
-
 ### Why async-mutex?
 
 Alternatives considered:
@@ -514,8 +507,7 @@ Alternatives considered:
 To scale to production:
 
 1. Migrate from SQLite to PostgreSQL (better concurrency)
-2. Add connection pooling (Prisma supports this)
-3. Implement Redis for distributed idempotency cache (if needed)
-4. Add rate limiting (express-rate-limit)
-5. Consider read replicas for high-traffic read operations
-6. Add database indexes for frequently queried fields
+2. Implement Redis for distributed idempotency cache (if needed)
+3. Add rate limiting (express-rate-limit)
+4. Consider read replicas for high-traffic read operations
+5. Add database indexes for frequently queried fields

@@ -13,12 +13,11 @@ Atomic table assignment system for restaurant reservations with concurrency cont
 - [📦 Project Structure](#-project-structure)
 - [🔧 Environment Variables](#-environment-variables)
 - [🧰 Tools & Libraries Used](#-tools--libraries-used)
+- [🎨 Frontend Application](#-frontend-application)
 - [🚀 Deployment](#-deployment)
 - [🚧 Known Limitations & Assumptions](#-known-limitations--assumptions)
 
 ## 🌐 Live Deployment
-
-The service is deployed and available at:
 
 **🔗 [https://wokilite-reservations-production.up.railway.app](https://wokilite-reservations-production.up.railway.app/health)**
 
@@ -480,6 +479,15 @@ This project was developed with **Cursor AI** assistance to accelerate:
 - TypeScript + Express boilerplate
 - Comprehensive test cases
 - Timezone handling with date-fns-tz
+
+## 🎨 Frontend Application
+
+**🔗 Live App:** [https://wokilite-app.vercel.app](https://wokilite-app.vercel.app)  
+**📦 Repository:** [https://github.com/aSampo/wokilite-app](https://github.com/aSampo/wokilite-app)
+
+**Tech Stack:** Next.js 16, React 19, TypeScript, TanStack Query, shadcn/ui
+
+**Features:** Day view with date navigation, sector grouping, time slot filtering, and real-time reservation management. Deployed on Vercel.
 
 ## 🚀 Deployment
 

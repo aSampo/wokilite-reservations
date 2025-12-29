@@ -554,11 +554,13 @@ Uses **Prisma with SQLite** for persistent storage:
 
 ### Why async-mutex?
 
+We use async-mutex to prevent race conditions when checking availability. Two concurrent requests can both read "available" before either writes, causing double-booking. DB transactions protect writes but don't prevent concurrent reads.
+
 Alternatives considered:
 
-- **Redis locks:** requires additional infrastructure
-- **DB transactions:** not available without DB
-- **async-mutex:** simple, effective for in-memory, easy to test
+- **Redis locks:** Requires additional infrastructure
+- **DB-level locking:** More complex, SQLite has limited support
+- **async-mutex:** Simple, in-memory coordination, easy to test
 
 ### Scalability Considerations
 

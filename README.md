@@ -2,6 +2,20 @@
 
 Atomic table assignment system for restaurant reservations with concurrency control and idempotency.
 
+## 📑 Table of Contents
+
+- [🌐 Live Deployment](#-live-deployment)
+- [🚀 Quick Start](#-quick-start)
+- [📋 API Endpoints](#-api-endpoints)
+- [🏗️ Architecture & Design Decisions](#️-architecture--design-decisions)
+- [✅ Testing](#-testing)
+- [🎯 CORE Requirements Implemented](#-core-requirements-implemented)
+- [📦 Project Structure](#-project-structure)
+- [🔧 Environment Variables](#-environment-variables)
+- [🧰 Tools & Libraries Used](#-tools--libraries-used)
+- [🚀 Deployment](#-deployment)
+- [🚧 Known Limitations & Assumptions](#-known-limitations--assumptions)
+
 ## 🌐 Live Deployment
 
 The service is deployed and available at:
@@ -467,12 +481,39 @@ This project was developed with **Cursor AI** assistance to accelerate:
 - Comprehensive test cases
 - Timezone handling with date-fns-tz
 
-### Deployment
+## 🚀 Deployment
 
-- **Platform:** Railway
-- **URL:** [https://wokilite-reservations-production.up.railway.app](https://wokilite-reservations-production.up.railway.app/health)
-- **CI/CD:** Automatic deployment from main branch
-- **Environment:** Production-ready with CORS enabled
+### Live Deployment
+
+The service is deployed on **Railway** and available at:
+
+**🔗 [https://wokilite-reservations-production.up.railway.app](https://wokilite-reservations-production.up.railway.app/health)**
+
+### How It's Deployed
+
+**Platform:** Railway  
+**CI/CD:** Automatic deployment from `main` branch  
+**Start Command:** `npm run start:prod` (runs migrations before starting server)
+
+#### Production Environment Variables
+
+**Required:**
+
+- `DATABASE_URL` - Database connection string (provided by Railway database service)
+- `NODE_ENV=production`
+
+**Optional:**
+
+- `PORT` - Server port (Railway sets automatically)
+- `LOG_LEVEL` - Logging level (default: `info`)
+- `CORS_ORIGIN` - Allowed CORS origins (default: `*`)
+- `CORS_CREDENTIALS` - Enable CORS credentials (default: `false`)
+
+### Deployment Scripts
+
+- `npm run build` - Compiles TypeScript and generates Prisma Client
+- `npm run start:prod` - Runs `prisma migrate deploy` then starts the server
+- `npm start` - Starts server (assumes migrations already applied)
 
 ## 🚧 Known Limitations & Assumptions
 
